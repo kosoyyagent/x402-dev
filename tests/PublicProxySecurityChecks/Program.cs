@@ -19,7 +19,25 @@ string[] blocked =
     "http://198.51.100.10/", "http://203.0.113.2/", "http://224.0.0.1/",
     "http://[::1]/", "http://[::ffff:127.0.0.1]/", "http://[fe80::1]/",
     "http://[fc00::1]/", "http://[64:ff9b::7f00:1]/",
-    "http://[2001:db8::1]/", "http://[2002:c0a8:0101::1]/"
+    "http://[2001:db8::1]/", "http://[2002:c0a8:0101::1]/",
+    // A scope/zone marker in the host is refused outright (IsAllowedHost rejects '%').
+    "http://[fe80::1%eth0]/", "http://[fe80::1%25eth0]/",
+    // IPv4-mapped IPv6 of every private/link-local class, not only loopback.
+    "http://[::ffff:10.0.0.1]/", "http://[::ffff:169.254.169.254]/", "http://[::ffff:100.64.0.1]/",
+    // Teredo, benchmarking, ORCHID, RFC 9637 documentation, site-local, multicast.
+    "http://[2001::1]/", "http://[2001:2::1]/", "http://[2001:10::1]/",
+    "http://[3fff::1]/", "http://[fec0::1]/", "http://[ff02::1]/",
+    // NAT64 embedding link-local and CGNAT, not only loopback.
+    "http://[64:ff9b::a9fe:a9fe]/", "http://[64:ff9b::6440:1]/",
+    // Numeric IPv4 spellings the URI parser canonicalizes to the literal: the
+    // policy then sees 127.0.0.1 and refuses. If a runtime ever leaves the
+    // spelling as a DNS name, the connect-path still refuses the resolved
+    // loopback/private answer — this check turns red first.
+    "http://2130706433/", "http://0x7f000001/", "http://0177.0.0.1/",
+    // Trailing-dot spellings of a literal or a reserved name.
+    "http://127.0.0.1./", "http://localhost./", "http://sub.localhost./",
+    // Credentials must not smuggle a private literal past the host check.
+    "http://user:pass@127.0.0.1/", "http://user:pass@[::1]/"
 ];
 foreach (string u in blocked)
 {
